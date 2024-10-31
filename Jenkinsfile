@@ -17,7 +17,7 @@ spec:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
     command:
-    - cat
+    - pwd
     tty: true
     volumeMounts:
     - name: workspace-volume
