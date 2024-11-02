@@ -1,11 +1,10 @@
 pipeline {
-    agent none // Specifies that no static Jenkins agent is used
+    agent none
 
     stages {
         stage('Build Image with Kaniko') {
             agent {
                 kubernetes {
-                    // Define the Kubernetes pod and Kaniko executor container using YAML
                     yaml """
 apiVersion: v1
 kind: Pod
@@ -17,10 +16,11 @@ spec:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
     command:
-    - sleep
+    - /kaniko/executor
     args:
-    - 99d
-    tty: true
+    - --dockerfile=/workspace/Dockerfile
+    - --context=dir:///workspace
+    - --no-push
     volumeMounts:
     - name: workspace-volume
       mountPath: /workspace
@@ -31,11 +31,8 @@ spec:
                 }
             }
             steps {
-                // Execute Kaniko command to build the Docker image
                 container('kaniko') {
-                    sh '''
-                    /kaniko/executor --dockerfile=${WORKSPACE}/Dockerfile --context=dir://${WORKSPACE} --no-push
-                    '''
+                    sh 'echo "Building Docker image with Kaniko"'
                 }
             }
         }
