@@ -1,5 +1,3 @@
-# Use an official lightweight base image.
-FROM alpine:latest
+FROM ubuntu:latest
 
-# Command to print "Hello"
-CMD ["echo", "Hello"]
+CMD echo 'Look, ma! No docker daemon!'
