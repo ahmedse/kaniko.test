@@ -9,30 +9,45 @@ pipeline {
 apiVersion: v1
 kind: Pod
 metadata:
+  name: kaniko
   labels:
-    some-label: kaniko
+    app: kaniko
 spec:
   containers:
   - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
+    image: gcr.io/kaniko-project/executor:debug
+    imagePullPolicy: Always
     command:
-    - /kaniko/executor
-    args:
-    - --dockerfile=/workspace/Dockerfile
-    - --context=dir:///workspace
-    - --no-push
+    - /busybox/cat
+    tty: true
     volumeMounts:
-    - name: workspace-volume
-      mountPath: /workspace
+      - name: jenkins-docker-cfg
+        mountPath: /kaniko/.docker
+      - name: workspace-volume
+        mountPath: /workspace
   volumes:
-  - name: workspace-volume
-    emptyDir: {}
+    - name: jenkins-docker-cfg
+      secret:
+        secretName: docker-credentials
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+    - name: workspace-volume
+      emptyDir: {}
 """
                 }
             }
             steps {
                 container('kaniko') {
-                    sh 'echo "Building Docker image with Kaniko"'
+                    script {
+                        sh '''
+                            /kaniko/executor \
+                                --context "${WORKSPACE}" \
+                                --dockerfile "${WORKSPACE}/Dockerfile" \
+                                --destination your-registry/your-image:${BUILD_NUMBER} \
+                                --destination your-registry/your-image:latest
+                        '''
+                    }
                 }
             }
         }
